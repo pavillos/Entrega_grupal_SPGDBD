@@ -54,7 +54,7 @@ El objetivo de la entrega es realizar un análisis de las de citas electorales a
 ```{r}
 datos_elecciones_brutos <- read_csv(file = "./datos/datos_elecciones_brutos.csv")
 cod_mun <- read_csv(file = "./datos/cod_mun.csv")
-encuestas <- read_csv(file = "./datos/historical_surveys.csv")
+encuestas_brutos <- read_csv(file = "./datos/historical_surveys.csv")
 siglas <- read_csv(file = "./datos/siglas.csv")
 ```
 
@@ -80,6 +80,8 @@ siglas <- read_csv(file = "./datos/siglas.csv")
 
 ```{r}
 datos_elecciones <- datos_elecciones_brutos |> 
+  select(where(~ n_distinct(.) > 1))
+encuestas <- encuestas_brutos |> 
   select(where(~ n_distinct(.) > 1))
 ```
 
