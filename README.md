@@ -8,7 +8,7 @@ El análisis abarca tanto los resultados electorales como el acierto de las encu
 
 ## 👥 Integrantes del Grupo
 
-- 🙋‍♀️ Almudena (DNI: 00000000-X)
+- 🙋‍♀️ Almudena Moreno-Ribera (DNI: 47524050-R)
 - 🙋‍♂️ Pablo Villoslada-Blanco (DNI: 16615024P-P)
 
 ## 📁 Estructura del Repositorio
