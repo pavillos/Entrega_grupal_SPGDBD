@@ -29,6 +29,7 @@ execute:
 
 rm(list = ls()) # Borramos variables de environment
 library(tidyverse)
+library(skimr)
 ```
 
 ## Índice
@@ -57,6 +58,13 @@ cod_mun <- read_csv(file = "./datos/cod_mun.csv")
 encuestas_brutos <- read_csv(file = "./datos/historical_surveys.csv")
 siglas <- read_csv(file = "./datos/siglas.csv")
 ```
+```{r}
+#| include: false 
+datos_elecciones_brutos |> skim()
+cod_mun |> skim()
+encuestas_brutos |> skim()
+siglas |> skim()
+```
 
 # 3. Depuración de los datos {#depuracion}
 
@@ -76,6 +84,8 @@ siglas <- read_csv(file = "./datos/siglas.csv")
 
     3.5. [Incluir la fecha de las elecciones y el nombre de los municipios](#incluir)
 
+    3.6. [Filtrado de las encuestas de interés](#filtrado)
+
 ## 3.1. Eliminar variables que no aportan {#eliminar}
 
 ```{r}
@@ -94,6 +104,11 @@ datos_elecciones_tidy <- datos_elecciones |>
   pivot_longer(cols = - ("anno":"votos_candidaturas"), names_to = "partido",
                values_to = "votos",
                values_drop_na = TRUE)
+encuestas_tidy <- encuestas |> 
+  pivot_longer(cols = -("date_elec":"turnout"),
+               names_to = "siglas", 
+               values_to = "intencion_voto",
+               values_drop_na = TRUE)
 ```
 
 ------------------------------------------------------------------------
@@ -106,6 +121,12 @@ datos_elecciones_tidy <- datos_elecciones_tidy |>
 
 datos_elecciones_tidy <- datos_elecciones_tidy |> 
   relocate(siglas, .after = partido)
+
+encuestas_tidy <- encuestas_tidy |> 
+  left_join(siglas, by = c("siglas" = "siglas"))
+
+encuestas_tidy <- encuestas_tidy |> 
+  relocate(denominacion, .after = siglas)
 ```
 
 ------------------------------------------------------------------------
@@ -113,23 +134,83 @@ datos_elecciones_tidy <- datos_elecciones_tidy |>
 ## 3.4. Filtrar los partidos {#filtrar}
 
 ```{r}
+agrupar_siglas <- function(siglas, partido){
+  siglas_comun <- case_when(
+    
+    # BLOQUE NACIONALISTA GALEGO (BNG)
+    str_detect(str_to_upper(siglas), "BNG|B.N.G.") 
+    ~ "BNG",
+    
+    # CONVERGÈNCIA I UNIÓ (CIU)
+    str_detect(str_to_upper(siglas), "CIU") | 
+      str_detect(str_to_upper(partido), "CONVERGÈNCIA I UNIÓ")
+    ~ "CIU",
+    
+    # COMPROMÍS
+    (str_detect(str_to_upper(siglas), "COMPROMÍS|COMPROMIS|VERDS") | 
+     str_detect(str_to_upper(partido), "COMPROMÍS")) & 
+     !str_detect(str_to_upper(partido), "MÉS COMPROMÍS")
+    ~ "COMPROMIS",
+    
+    # CIUDADANOS (Cs) (cuidado: tiene/tuvo federaciones - sucursales - con algún otro nombre)
+    str_detect(str_to_upper(siglas), "CS") | 
+      str_detect(str_to_upper(partido), "CIUDADANOS PARTIDO DE LA|CIUDADANOS,|CIUDADANOS-|CIUTADANS")
+    ~ "CS",
+    
+    # EH - BILDU (son ahora una coalición de partidos formados por Sortu, Eusko Alkartasuna, Aralar, Alternatiba)
+    str_detect(str_to_upper(siglas), "EH|AMAIUR|ARALAR") | 
+      str_detect(str_to_upper(partido), "EUSKO ALKARTASUNA|EUSKAL HERRIA BILDU|PARTIDO POLITICO ARALAR")
+    ~ "EH-BILDU",
+    
+    # ESQUERRA REPUBLICANA DE CATALUNYA (ERC)
+    (str_detect(str_to_upper(siglas), "ERC|ESQUERRA") | 
+     str_detect(str_to_upper(partido), "ESQUERRA REPUBLICANA")) & 
+      !str_detect(str_to_upper(partido), "PAIS VALENCIA|PAÍS VALENCIÀ")
+    ~ "ERC",
+    
+    # MÁS PAÍS
+    str_detect(str_to_upper(siglas), "MÁS PAÍS|MP|M PAÍS") & 
+    !str_detect(str_to_upper(partido), "MÉS COMPROMÍS")
+    ~ "MÁS PAÍS",
+    
+    # PARTIDO NACIONALISTA VASCO (PNV)
+    str_detect(str_to_upper(siglas), "PNV|P.N.V.") 
+    ~ "PNV",
+    
+    # PARTIDO POPULAR (PP)
+    ((str_detect(str_to_upper(siglas), "PP|AP|PDP") | 
+     str_detect(str_to_upper(partido), "PARTIDO POPULAR|UNIÓN DEL PUEBLO NAVARRO EN COALICIÓN CON EL PARTI")) & 
+      !str_detect(str_to_upper(partido), "ARA,|ANTICAPITALIST|PARTIDO POSITIVISTA CRISTIANO|PLATAFORMA DEL PUEBLO SORIANO"))
+    ~ "PP",
+    
+    # PARTIDO SOCIALISTA OBRERO ESPAÑOL (cuidado: tiene/tuvo federaciones - sucursales - con algún otro nombre)
+    str_detect(str_to_upper(siglas), "PSOE|PAD|PSC") | 
+     str_detect(str_to_upper(partido), "PARTIDO SOCIALI|PSOE|PARTIT SOCIALISTA OBRER ESPANYOL")
+    ~ "PSOE",
+    
+    # UNIDAS PODEMOS - IU (cuidado que aquí han tenido nombres variados - 
+    # IU, los verdes, podem, ezker batua, …- y no siempre han ido juntos, 
+    # pero aquí los analizaremos juntos (UP-IU)
+    ((str_detect(str_to_upper(siglas), "IU|LV|PODEMOS|UP|VERDES|CANARIAS DE") | 
+      str_detect(str_to_upper(partido), "ELS VERDS|PODEM|EN MAREA|EQUO|PODEMOS|ESQUERDA UNIDA|ESQUERRA UNIDA|EZKER BATUA|OS VERDES|IZQUIERDA UNIDA")) & 
+       (!str_detect(str_to_upper(siglas), "CUP|EN POSITIU|EL PI|UPYD|RECORTES CERO-GRUPO VERDE|UPD|UPL") |
+        !str_detect(str_to_upper(partido), "EN POSITIU|EL PI|MOVIMIENTO POR LA UNIDAD DEL PUEBLO CANARIO|RECORTES CERO|RECORTES CERO-GRUPO VERDE|UNION DEL PUEBLO LEONES|N PROGRESO Y DEMOCRACIA")))
+    ~ "UP-IU",
+    
+    # VOX
+    str_detect(str_to_upper(siglas), "VOX") ~ "VOX",
+    
+    # OTROS
+    TRUE ~ "OTROS")
+  
+  return(siglas_comun)
+}
+
 datos_elecciones_tidy <- datos_elecciones_tidy |>
-  mutate(
-    siglas_comun = case_when(
-      str_detect(str_to_lower(siglas), "PP|UPN-PP|PP-UPM|P.P.|P.P-E.U.|PP-EU|PP-PAR|PP-FORO") ~ "PP",
-      str_detect(str_to_lower(siglas), "POSI|PSE-EE-PSOE|PSOE-PROGR.|SIEX|PSDEG-PSOE|PSOE|PSPC|PSE-EE(PSOE)|PSA|PSdeG-PSOE|PSOE de A|PSE-EE (PSOE)|P.S.O.E.|P.O.S.I.|PSD-FIA|PSOE-A|SSP-SxTF-EQUO|SXT|PSE-EE (PSOE)|PSE-EE|PSOE-NCa|PSC|FIA") ~ "PSOE",
-      str_detect(str_to_lower(siglas), "CENB|C's|Cenb|CenB|CNB|pCUA|C,S|CCD|FAC|U.C.I.T.|C´s|CILUS|CRA|CCD-CI|Cs|CILU-LINARE") ~ "Cs",
-      str_detect(str_to_lower(siglas), "EAJ-PNV|E.A.J.-P.N.V.") ~ "PNV",
-      str_detect(str_to_lower(siglas), "BNG|B.N.G.|NÓS|BNG-NÓS") ~ "BNG",
-      str_detect(str_to_lower(siglas), "COMPROMÍS-Q|PODEMOS-COM|PODEMOS - C|COMPROMÍS 2|MÉS COMPROM") ~ "COMPROMÍS",
-      str_detect(str_to_lower(siglas), "CIU|CiU") ~ "CIU",
-      str_detect(str_to_lower(siglas), "B-LV|EB-IU|IU|LVE|IULV-CA|LV|EU-IU|LV-GV|VERDES|PAVIEL|LV-CM|IU-CM|LVRM|CCS|IUN-NEB|PAS|IUC|CENB|LV-E|IU-SIEX|IU-LV|LVCM|CCSE|IU-BA|VERDES-IUC-AC25|EB-B|C's|Cenb|LV-EV|CenB|I.U.|EV-LV|AGRUCI|I.C.Bur|LOS VERDES|CNB|L.V.|pCUA|LOS VERDES DE EUROPA|C,S|LVCM-LVE|IU-CM.|I.U.R.M.|IU-B.A-LOS VERDES|UCPIC|AMAIUR|IUCLM-LV|EUPV-LV|IUCL|IU-VERDES-SIEX: La Izquierda Plural|CCD|IU-V-SIEX: LA IZQUIERDA PLURAL|CHA-IU|FAC|ACIMA|IUV-RM|IU-IX|IU CyL|IUC-IpH-LV|IUCyL|U.C.I.T.|IUCM-LV|IU-PDSC|PODEMOS-AHA|UP-UPeC|PODEMOS|PODEMOS-COM|CENTRO MODE|IULV-CA,UPe|C´s|UPB: IU-UPe|IULV-CA, UP|PODEMOS - C|UP: IULV-CA|PODEMOS-Aho|IU-CHA-UPeC|CILUS|CRA|X LA IZQUIE|IU-B-UPeC|IU-UPeC-IAS|CANARIAS DE|IUC-UPeC|EN POSITIU|UPeC-IU-IZC|JS,PC|UNIDAD POPU|PODEMOS/AHAL DUGU-IU-EQUO|PODEMOS-IU-EQUO|CENTRO MODERADO|PODEMOS-IU-|PODEMOS-IU-EQUO-CLIAS|PODEMOS-IU-EQUO-BATZARRE|PODEMOS-IU-EQUO-SEGOVIEMOS|PODEMOS-IU-EQUO-IZCA|CCD-CI|UNIDOS PODEMOS|Cs|AVANT-LOS V|PODEMOS-EUP|PODEMOS-IU|FRONT REPUB|AVANT ADELA|PODEMOS-EU-|CILU-LINARE|PODEMOS-IX-|PODEMOS-EUPV|AVANT ADELANTE LOS VERDES|PODEMOS-IU LV CA|PODEMOS-EUIB|AVANT LOS VERDES|PODEMOS-EU|PODEMOS-IU-BATZARRE|PODEMOS-IX|MDyC") ~ "UP-IU",
-      str_detect(str_to_lower(siglas), "FRONT-ERC|ERC|PSM-EN,EU,EV,ER|ESQUERRA|esquerra|ERC-RI.cat|ERC - RI.cat / ESQUERRA|ERC-CATSÍ|ERC-CATSI|ERC-SOBIRAN|ERC-SOBIRANISTES") ~ "ERC",
-      str_detect(str_to_lower(siglas), "EH|EH bildu|SORTU|EA|ARALAR|ALTERNATIBA") ~ "EH Bildu",
-      str_detect(str_to_lower(siglas), "M PAÍS|MÁS PAÍS") ~ "MÁS PAÍS",
-      str_detect(str_to_lower(siglas), "VOX") ~ "VOX",
-      TRUE ~ "OTROS"
-    ))
+  mutate(siglas_comun = agrupar_siglas(siglas, partido))
+
+encuestas_tidy <- encuestas_tidy |>
+  mutate(siglas_comun = agrupar_siglas(siglas, denominacion))
 ```
 
 ------------------------------------------------------------------------
@@ -141,6 +222,18 @@ datos_elecciones_tidy <- datos_elecciones_tidy |>
   mutate(fecha = glue::glue("{anno}-{mes}"),
          id_mun = glue::glue("{codigo_ccaa}-{codigo_provincia}-{codigo_municipio}")) |>
   left_join(cod_mun, by = c("id_mun" = "cod_mun"))
+```
+
+## 3.6. Filtrado de las encuestas de interés {#filtrado}
+
+Descartar todas aquellas encuestas que hagan referencia a elecciones anteriores a 2008, que sean a pie de urna, que tenga un tamaño muestral inferior a 750 o que sea desconocido que tengan menos de 1 o menos días de trabajo de campo
+
+```{r}
+encuestas_tidy |> 
+  drop_na(size) |> 
+  mutate(dias_trabajo = field_date_to - field_date_from, .after = field_date_to) |> 
+  filter(year(date_elec)>=2008 & exit_poll & size > 750) |> 
+  select(-exit_poll)
 ```
 
 # 4. Preguntas {#preguntas}
