@@ -13,7 +13,7 @@ execute:
 
 **Software para gestión de bases de datos**
 
-[**Autores:** <a href="https://www.linkedin.com/in/almudena-moreno-ribera-5b1389233?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3BJxW49sp%2BS8WrZmgJWFAGSQ%3D%3D" target="_blank">Almudena Moreno Ribera</a> (DNI: 00000000-X) y <a href="https://www.linkedin.com/in/pablo-villoslada-blanco-5a4b2316a?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3B%2BykJQkDhTvqHG%2Bh5Ya24zA%3D%3D" target="_blank">Pablo Villoslada-Blanco</a> (DNI: 16615024-P)]{style="font-size: 20px;"}
+[**Autores:** <a href="https://www.linkedin.com/in/almudena-moreno-ribera-5b1389233?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3BJxW49sp%2BS8WrZmgJWFAGSQ%3D%3D" target="_blank">Almudena Moreno-Ribera</a> (DNI: 47524050-R) y <a href="https://www.linkedin.com/in/pablo-villoslada-blanco-5a4b2316a?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3B%2BykJQkDhTvqHG%2Bh5Ya24zA%3D%3D" target="_blank">Pablo Villoslada-Blanco</a> (DNI: 16615024-P)]{style="font-size: 20px;"}
 
 <img src="./datos/imagen.png" style="max-width: 33%; height: auto; margin-top: 20px;"/>
 
@@ -30,6 +30,8 @@ execute:
 rm(list = ls()) # Borramos variables de environment
 library(tidyverse)
 library(skimr)
+library(sf)
+library(patchwork)
 ```
 
 ## Índice
@@ -53,11 +55,15 @@ El objetivo de la entrega es realizar un análisis de las de citas electorales a
 ## 2. Carga de los datos {#carga}
 
 ```{r}
+#| warning: false
+#| message: false
+
 datos_elecciones_brutos <- read_csv(file = "./datos/datos_elecciones_brutos.csv")
 cod_mun <- read_csv(file = "./datos/cod_mun.csv")
 encuestas_brutos <- read_csv(file = "./datos/historical_surveys.csv")
 siglas <- read_csv(file = "./datos/siglas.csv")
 ```
+
 ```{r}
 #| include: false 
 datos_elecciones_brutos |> skim()
@@ -80,11 +86,11 @@ siglas |> skim()
 
     3.3. [Añadir siglas](#siglas)
 
-    3.4. [Filtrar los partidos](#filtrar)
+    3.4. [Filtrar los partidos](#filtrarpartidos)
 
     3.5. [Incluir la fecha de las elecciones y el nombre de los municipios](#incluir)
 
-    3.6. [Filtrado de las encuestas de interés](#filtrado)
+    3.6. [Filtrar las encuestas de interés](#filtrarencuestas)
 
 ## 3.1. Eliminar variables que no aportan {#eliminar}
 
@@ -101,9 +107,11 @@ encuestas <- encuestas_brutos |>
 
 ```{r}
 datos_elecciones_tidy <- datos_elecciones |> 
-  pivot_longer(cols = - ("anno":"votos_candidaturas"), names_to = "partido",
+  pivot_longer(cols = - ("anno":"votos_candidaturas"),
+               names_to = "partido",
                values_to = "votos",
                values_drop_na = TRUE)
+
 encuestas_tidy <- encuestas |> 
   pivot_longer(cols = -("date_elec":"turnout"),
                names_to = "siglas", 
@@ -115,23 +123,33 @@ encuestas_tidy <- encuestas |>
 
 ## 3.3. Añadir siglas {#siglas}
 
+Primero, nos quedamos con una única sigla para cada partido.
+
 ```{r}
-datos_elecciones_tidy <- datos_elecciones_tidy |> 
-  left_join(siglas, by = c("partido" = "denominacion"))
+siglas <- siglas |> 
+  group_by(denominacion) |> 
+  summarise(siglas = first(siglas))
+```
+
+Luego, añadimos las siglas.
+
+```{r}
+#| warning: false
 
 datos_elecciones_tidy <- datos_elecciones_tidy |> 
+  left_join(siglas, by = c("partido" = "denominacion")) |> 
   relocate(siglas, .after = partido)
 
 encuestas_tidy <- encuestas_tidy |> 
-  left_join(siglas, by = c("siglas" = "siglas"))
-
-encuestas_tidy <- encuestas_tidy |> 
-  relocate(denominacion, .after = siglas)
+  left_join(siglas, by = c("siglas" = "siglas")) |> 
+  relocate(siglas, .after = siglas)
 ```
 
 ------------------------------------------------------------------------
 
-## 3.4. Filtrar los partidos {#filtrar}
+## 3.4. Filtrar los partidos {#filtrarpartidos}
+
+Primero, definimos una función para poder agrupar los partidos en función de su denominación y/o sus siglas.
 
 ```{r}
 agrupar_siglas <- function(siglas, partido){
@@ -205,7 +223,13 @@ agrupar_siglas <- function(siglas, partido){
   
   return(siglas_comun)
 }
+```
 
+------------------------------------------------------------------------
+
+Luego, aplicamos esa función a los datos de los resultados y las encuestas.
+
+```{r}
 datos_elecciones_tidy <- datos_elecciones_tidy |>
   mutate(siglas_comun = agrupar_siglas(siglas, partido))
 
@@ -224,15 +248,15 @@ datos_elecciones_tidy <- datos_elecciones_tidy |>
   left_join(cod_mun, by = c("id_mun" = "cod_mun"))
 ```
 
-## 3.6. Filtrado de las encuestas de interés {#filtrado}
+## 3.6. Filtrado de las encuestas de interés {#filtrarencustas}
 
-Descartar todas aquellas encuestas que hagan referencia a elecciones anteriores a 2008, que sean a pie de urna, que tenga un tamaño muestral inferior a 750 o que sea desconocido que tengan menos de 1 o menos días de trabajo de campo
+Descartamos todas aquellas encuestas que hagan referencia a elecciones anteriores a 2008, que sean a pie de urna, que tenga un tamaño muestral inferior a 750 o que sea desconocido que tengan menos de 1 o menos días de trabajo de campo.
 
 ```{r}
-encuestas_tidy |> 
+encuestas_tidy <- encuestas_tidy |> 
   drop_na(size) |> 
   mutate(dias_trabajo = field_date_to - field_date_from, .after = field_date_to) |> 
-  filter(year(date_elec)>=2008 & exit_poll & size > 750) |> 
+  filter(lubridate::year(date_elec) >= 2008 & !exit_poll & size > 750 & dias_trabajo > 1) |> 
   select(-exit_poll)
 ```
 
@@ -244,7 +268,240 @@ encuestas_tidy |>
 
 ------------------------------------------------------------------------
 
+Primero, añadimos el número y porcentaje de votos obtenido por cada partido en cada municipio y elección.
+
+```{r}
+datos_elecciones_tidy <- datos_elecciones_tidy |>
+  mutate(votos = sum(votos), .by = c(fecha, id_mun, siglas_comun)) |> 
+  distinct(fecha, id_mun, siglas_comun, .keep_all = TRUE) |>
+  mutate(porc_voto = (votos / (votos_candidaturas + votos_nulos)) * 100,
+         .by = c(fecha, id_mun))
+```
+
+------------------------------------------------------------------------
+
+```{r}
+#| code-fold: true
+
+partidos_nacionales <- c("PSOE", "PP", "VOX", "CS", "MP", "UP-IU")
+
+datos_elecciones_tidy |> 
+  mutate(group = ifelse(siglas_comun %in% partidos_nacionales, "Nacionales", "Autonómicos/Nacionalistas")) |>
+  mutate(group = forcats::fct_relevel(group, "Nacionales", "Autonómicos/Nacionalistas")) |> 
+  summarise(porc_total = sum(porc_voto), .by = c(group, fecha, id_mun)) |>
+  ggplot() +
+  ggridges::geom_density_ridges(aes(x = porc_total, y = group,
+                                    fill = group, color = group),
+                                alpha = 0.7) +
+  scale_fill_manual(values = c("Nacionales" = "#1f77b4", "Autonómicos/Nacionalistas" = "#d62728")) +
+  scale_color_manual(values = c("Nacionales" = "#1f77b4", "Autonómicos/Nacionalistas" = "#d62728")) +
+  labs(title = "Distribución del Porcentaje Total de Votos por Municipio",
+       y = "",
+       fill = "Tipo de partido",
+       color = "Tipo de partido") +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5),
+        axis.text.y = element_blank(),
+        legend.position = "bottom") +
+  facet_wrap(~fecha)
+```
+
+------------------------------------------------------------------------
+
 ## ¿Cuál el partido ganador en los municipios de más de 100 000 habitantes de censo en cada una de las elecciones?
+
+------------------------------------------------------------------------
+
+Primero, preparamos los datos.
+
+```{r}
+#| code-fold: true
+
+partido_ganador <- datos_elecciones_tidy |> 
+  filter(censo > 100000) |> 
+  slice_max(porc_voto, by = c(fecha, id_mun)) |> 
+  select(fecha, id_mun, siglas_comun, porc_voto) |> 
+  arrange(fecha, id_mun)
+
+partido_ganador_2008_03 <- partido_ganador |> 
+  filter(fecha == "2008-03")
+partido_ganador_2011_11 <- partido_ganador |> 
+  filter(fecha == "2011-11")
+partido_ganador_2015_12 <- partido_ganador |>
+  filter(fecha == "2015-12")
+partido_ganador_2016_06 <- partido_ganador |>
+  filter(fecha == "2016-06")
+partido_ganador_2019_04 <- partido_ganador |>
+  filter(fecha == "2019-04")
+partido_ganador <- partido_ganador |>
+  filter(fecha == "2019-11")
+```
+
+```{r}
+#| message: false
+#| warning: false
+#| code-fold: true
+
+tpm <- capture.output(municipios <- st_read("./datos/lineas_limite/SHP_ETRS89/recintos_municipales_inspire_peninbal_etrs89/recintos_municipales_inspire_peninbal_etrs89.shp"))
+rm(tmp)
+
+municipios <- municipios |> 
+  mutate(id_mun = str_replace_all(NATCODE, "(..)(..)(..)(..)(...)", "\\2-\\4-\\5"))
+
+municipios_2008_03 <- municipios |> 
+  left_join(partido_ganador_2008_03, by = c("id_mun" = "id_mun"))
+municipios_2011_11 <- municipios |>
+  left_join(partido_ganador_2011_11, by = c("id_mun" = "id_mun"))
+municipios_2015_12 <- municipios |>
+  left_join(partido_ganador_2015_12, by = c("id_mun" = "id_mun"))
+municipios_2016_06 <- municipios |>
+  left_join(partido_ganador_2016_06, by = c("id_mun" = "id_mun"))
+municipios_2019_04 <- municipios |>
+  left_join(partido_ganador_2019_04, by = c("id_mun" = "id_mun"))
+municipios_2019_11 <- municipios |>
+  left_join(partido_ganador, by = c("id_mun" = "id_mun"))
+```
+
+```{r}
+#| code-fold: true
+
+partidos_leyenda <- data.frame(
+    siglas_comun = factor(c("PP", "PSOE", "CIU", "UP-IU", "ERC"), 
+                          levels = c("PP", "PSOE", "CIU", "UP-IU", "ERC"))
+)
+
+mapa_2008_03 <- ggplot(municipios_2008_03 |> 
+                         mutate(siglas_comun = factor(siglas_comun, levels = c("PP", "PSOE", "CIU", "UP-IU", "ERC")))) +
+  geom_sf(aes(fill = siglas_comun), color = "grey20") +
+  geom_blank(data = partidos_leyenda, aes(fill = siglas_comun)) +
+  scale_fill_manual(values = c("PP" = "#1f77b4", "PSOE" = "#d62728",
+                               "CIU" = "#1c3687", "UP-IU" = "#7D3C98", "ERC" = "#FFD700")) +
+  theme_minimal() +
+  labs(title = "2018-03",
+       fill = "Partido ganador") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks =  element_blank(),
+    axis.title = element_blank(),
+    panel.border = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+
+mapa_2011_11 <- ggplot(municipios_2011_11 |> 
+                         mutate(siglas_comun = factor(siglas_comun, levels = c("PP", "PSOE", "CIU", "UP-IU", "ERC")))) +
+  geom_sf(aes(fill = siglas_comun), color = "grey20") +
+  geom_blank(data = partidos_leyenda, aes(fill = siglas_comun)) +
+  scale_fill_manual(values = c("PP" = "#1f77b4", "PSOE" = "#d62728",
+                               "CIU" = "#1c3687", "UP-IU" = "#7D3C98", "ERC" = "#FFD700")) +
+  theme_minimal() +
+  labs(title = "2011-11",
+       fill = "Partido ganador") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks =  element_blank(),
+    axis.title = element_blank(),
+    panel.border = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+
+mapa_2015_12 <- ggplot(municipios_2015_12 |> 
+                         mutate(siglas_comun = factor(siglas_comun, levels = c("PP", "PSOE", "CIU", "UP-IU", "ERC")))) +
+  geom_sf(aes(fill = siglas_comun), color = "grey20") +
+  geom_blank(data = partidos_leyenda, aes(fill = siglas_comun)) +
+  scale_fill_manual(values = c("PP" = "#1f77b4", "PSOE" = "#d62728",
+                               "CIU" = "#1c3687", "UP-IU" = "#7D3C98", "ERC" = "#FFD700")) +
+  theme_minimal() +
+  labs(title = "2015-12",
+       fill = "Partido ganador") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks =  element_blank(),
+    axis.title = element_blank(),
+    panel.border = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+
+mapa_2016_06 <- ggplot(municipios_2016_06 |> 
+                         mutate(siglas_comun = factor(siglas_comun, levels = c("PP", "PSOE", "CIU", "UP-IU", "ERC")))) +
+  geom_sf(aes(fill = siglas_comun), color = "grey20") +
+  geom_blank(data = partidos_leyenda, aes(fill = siglas_comun)) +
+  scale_fill_manual(values = c("PP" = "#1f77b4", "PSOE" = "#d62728",
+                               "CIU" = "#1c3687", "UP-IU" = "#7D3C98", "ERC" = "#FFD700")) +
+  theme_minimal() +
+  labs(title = "2016-06",
+       fill = "Partido ganador") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks =  element_blank(),
+    axis.title = element_blank(),
+    panel.border = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+
+mapa_2019_04 <- ggplot(municipios_2019_04 |> 
+                         mutate(siglas_comun = factor(siglas_comun, levels = c("PP", "PSOE", "CIU", "UP-IU", "ERC")))) +
+  geom_sf(aes(fill = siglas_comun), color = "grey20") +
+  geom_blank(data = partidos_leyenda, aes(fill = siglas_comun)) +
+  scale_fill_manual(values = c("PP" = "#1f77b4", "PSOE" = "#d62728",
+                               "CIU" = "#1c3687", "UP-IU" = "#7D3C98", "ERC" = "#FFD700")) +
+  theme_minimal() +
+  labs(title = "2019-04",
+       fill = "Partido ganador") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks =  element_blank(),
+    axis.title = element_blank(),
+    panel.border = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+
+mapa_2019_11 <- ggplot(municipios_2019_11 |> 
+                         mutate(siglas_comun = factor(siglas_comun, levels = c("PP", "PSOE", "CIU", "UP-IU", "ERC")))) +
+  geom_sf(aes(fill = siglas_comun), color = "grey20") +
+  geom_blank(data = partidos_leyenda, aes(fill = siglas_comun)) +
+  scale_fill_manual(values = c("PP" = "#1f77b4", "PSOE" = "#d62728",
+                               "CIU" = "#1c3687", "UP-IU" = "#7D3C98", "ERC" = "#FFD700")) +
+  theme_minimal() +
+  labs(title = "2019-11",
+       fill = "Partido ganador") +
+  theme(
+    plot.title = element_text(hjust = 0.5),
+    axis.text.x = element_blank(),
+    axis.text.y = element_blank(),
+    axis.ticks =  element_blank(),
+    axis.title = element_blank(),
+    panel.border = element_blank(),
+    panel.grid.major = element_blank(),
+    panel.grid.minor = element_blank()
+  )
+```
+
+------------------------------------------------------------------------
+
+```{r}
+#| code-fold: true
+
+mapa_2008_03 + mapa_2011_11 + mapa_2015_12 + 
+  mapa_2016_06 + mapa_2019_04 + mapa_2019_11 +
+  plot_layout(nrow = 2, ncol = 3, guides = "collect") +
+  plot_annotation(title = "Elecciones generales en España",
+                  theme = theme(plot.title = element_text(face = "bold", hjust = 0.5))) & theme(legend.position = "bottom")
+```
 
 ------------------------------------------------------------------------
 
