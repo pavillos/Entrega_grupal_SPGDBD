@@ -29,6 +29,7 @@ execute:
 
 rm(list = ls()) # Borramos variables de environment
 library(tidyverse)
+library(glue)
 library(skimr)
 library(sf)
 library(patchwork)
@@ -507,9 +508,147 @@ mapa_2008_03 + mapa_2011_11 + mapa_2015_12 +
 
 ## ¿Qué partido fue el segundo cuando el primero fue el PSOE? ¿Y cuándo el primero fue el PP?
 
+Primero, creamos una función propia que, dados dos vectores `partidos` y `votos`, proporcione como output las siglas del partido que ocupó la posición `n` en votos, calculando por defecto el más votado (n = 1).
+
+```{r}
+#| code-fold: true
+
+n_votado <- function(partidos, votos, n = 1) {
+  return(partidos[order(votos, decreasing = TRUE)][n])
+}
+```
+
+Luego, la aplicamos a los datos de las elecciones.
+
+```{r}
+#| code-fold: true
+
+datos_elecciones_tidy <- datos_elecciones_tidy |> 
+  mutate(ganador = n_votado(siglas_comun, votos, 1),
+         segundo = n_votado(siglas_comun, votos, 2), .by = c(fecha, id_mun))
+```
+
+------------------------------------------------------------------------
+
+Finalmente, obentemos el resultado.
+
+```{r}
+#| code-fold: true
+
+orden <- datos_elecciones_tidy |> 
+  filter(fecha == "2019-11") |> 
+  summarise(votos = sum(votos), .by = c(fecha, siglas_comun)) |> 
+  distinct(fecha, siglas_comun, .keep_all = TRUE) |> 
+  arrange(desc(votos)) |> 
+  pull(siglas_comun)
+
+colores_partidos <- c(
+    "PSOE" = "#e43d32",
+    "PP" = "#1D84CE",
+    "VOX" = "#61bb46",
+    "UP-IU" = "#772b69",
+    "CS" = "#EB6109",
+    "OTROS" = "#A7A9AC",
+    "ERC" = "#FFD700",
+    "PNV" = "#009A44",
+    "MÁS PAÍS" = "#8DB600",
+    "EH-BILDU" = "#000000",
+    "BNG" = "#005142",
+    "CIU" = "#FFCC00",
+    "COMPROMIS" = "#6AB023"
+)
+
+conteo <- datos_elecciones_tidy |> 
+  filter(ganador == "PP" | ganador == "PSOE") |>
+  count(ganador, segundo) |> 
+  rename(pp_psoe = ganador)
+
+datos_elecciones_tidy |> 
+  filter(ganador == "PP" | ganador == "PSOE") |>
+  drop_na(segundo) |>
+  mutate(pp_psoe = ifelse(ganador == "PP", "PP", "PSOE"),
+         segundo = factor(segundo, levels = orden)) |>
+  ggplot() +
+  geom_bar(aes(x = fecha, fill = segundo), position = "dodge", alpha = 0.8) +
+  scale_fill_manual(values = colores_partidos) +
+  labs(title = "Número de veces que un partido queda \nsegundo cuando el PP o el PSOE ganan",
+       x = "Elecciones",
+       y = "",
+       fill = "Partido") +
+  theme_minimal() +
+  theme(plot.title = element_text(hjust = 0.5, face = "bold"),
+        legend.position = "bottom",
+        strip.text = element_text(face = "bold")) +
+  facet_wrap(~pp_psoe, ncol = 1)
+```
+
 ------------------------------------------------------------------------
 
 ## ¿En qué municipios de más 2000 habitantes de censo, provincias o autonomías la diferencia entre el ganador y el segundo es más elevada?
+
+------------------------------------------------------------------------
+
+Municipios:
+
+```{r}
+#| code-fold: true
+
+datos_elecciones_tidy |> 
+  filter(censo > 2000) |>
+  group_by(fecha, id_mun) |>
+  filter(siglas_comun == ganador| siglas_comun == segundo) |>
+  arrange(desc(votos), .by_group = TRUE) |>
+  ungroup() |>
+  mutate(diferencia = votos - lag(votos)) |> 
+  slice_tail(n = 1, by = c(fecha, id_mun)) |> 
+  group_by(fecha) |> 
+  arrange(diferencia, .by_group = TRUE) |> 
+  ungroup() |>
+  select(fecha, municipio, ganador, segundo, diferencia) |> 
+  mutate(diferencia = abs(diferencia))
+```
+
+------------------------------------------------------------------------
+
+Provincias:
+
+```{r}
+#| code-fold: true
+
+datos_elecciones_tidy |> 
+  group_by(fecha, codigo_provincia) |>
+  filter(siglas_comun == ganador| siglas_comun == segundo) |>
+  arrange(desc(votos), .by_group = TRUE) |>
+  ungroup() |>
+  mutate(diferencia = votos - lag(votos)) |> 
+  slice_tail(n = 1, by = c(fecha, codigo_provincia)) |> 
+  group_by(fecha) |> 
+  arrange(diferencia, .by_group = TRUE) |> 
+  ungroup() |>
+  select(fecha, codigo_provincia, ganador, segundo, diferencia) |> 
+  mutate(diferencia = abs(diferencia))
+```
+
+------------------------------------------------------------------------
+
+Autonomías:
+
+```{r}
+#| code-fold: true
+
+datos_elecciones_tidy |> 
+  group_by(fecha, codigo_ccaa) |>
+  filter(siglas_comun == ganador| siglas_comun == segundo) |>
+  arrange(desc(votos), .by_group = TRUE) |>
+  ungroup() |>
+  mutate(diferencia = votos - lag(votos)) |> 
+  slice_tail(n = 1, by = c(fecha, codigo_ccaa)) |> 
+  group_by(fecha) |> 
+  arrange(diferencia, .by_group = TRUE) |> 
+  ungroup() |>
+  select(fecha, codigo_ccaa, ganador, segundo, diferencia) |> 
+  mutate(diferencia = abs(diferencia))
+```
 
 ------------------------------------------------------------------------
 

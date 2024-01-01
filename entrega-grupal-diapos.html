@@ -838,9 +838,194 @@
 <img data-src="entrega-grupal-diapos_files/figure-revealjs/unnamed-chunk-17-1.png" width="960" class="r-stretch"></section>
 <section id="qué-partido-fue-el-segundo-cuando-el-primero-fue-el-psoe-y-cuándo-el-primero-fue-el-pp" class="slide level2">
 <h2>¿Qué partido fue el segundo cuando el primero fue el PSOE? ¿Y cuándo el primero fue el PP?</h2>
+<p>Primero, creamos una función propia que, dados dos vectores <code>partidos</code> y <code>votos</code>, proporcione como output las siglas del partido que ocupó la posición <code>n</code> en votos, calculando por defecto el más votado (n = 1).</p>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb16"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1"></a>n_votado <span class="ot">&lt;-</span> <span class="cf">function</span>(partidos, votos, <span class="at">n =</span> <span class="dv">1</span>) {</span>
+<span id="cb16-2"><a href="#cb16-2"></a>  <span class="fu">return</span>(partidos[<span class="fu">order</span>(votos, <span class="at">decreasing =</span> <span class="cn">TRUE</span>)][n])</span>
+<span id="cb16-3"><a href="#cb16-3"></a>}</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
+<p>Luego, la aplicamos a los datos de las elecciones.</p>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1"></a>datos_elecciones_tidy <span class="ot">&lt;-</span> datos_elecciones_tidy <span class="sc">|&gt;</span> </span>
+<span id="cb17-2"><a href="#cb17-2"></a>  <span class="fu">mutate</span>(<span class="at">ganador =</span> <span class="fu">n_votado</span>(siglas_comun, votos, <span class="dv">1</span>),</span>
+<span id="cb17-3"><a href="#cb17-3"></a>         <span class="at">segundo =</span> <span class="fu">n_votado</span>(siglas_comun, votos, <span class="dv">2</span>), <span class="at">.by =</span> <span class="fu">c</span>(fecha, id_mun))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+</div>
 </section>
+<section class="slide level2">
+
+<p>Finalmente, obentemos el resultado.</p>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href="#cb18-1"></a>orden <span class="ot">&lt;-</span> datos_elecciones_tidy <span class="sc">|&gt;</span> </span>
+<span id="cb18-2"><a href="#cb18-2"></a>  <span class="fu">filter</span>(fecha <span class="sc">==</span> <span class="st">"2019-11"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb18-3"><a href="#cb18-3"></a>  <span class="fu">summarise</span>(<span class="at">votos =</span> <span class="fu">sum</span>(votos), <span class="at">.by =</span> <span class="fu">c</span>(fecha, siglas_comun)) <span class="sc">|&gt;</span> </span>
+<span id="cb18-4"><a href="#cb18-4"></a>  <span class="fu">distinct</span>(fecha, siglas_comun, <span class="at">.keep_all =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb18-5"><a href="#cb18-5"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(votos)) <span class="sc">|&gt;</span> </span>
+<span id="cb18-6"><a href="#cb18-6"></a>  <span class="fu">pull</span>(siglas_comun)</span>
+<span id="cb18-7"><a href="#cb18-7"></a></span>
+<span id="cb18-8"><a href="#cb18-8"></a>colores_partidos <span class="ot">&lt;-</span> <span class="fu">c</span>(</span>
+<span id="cb18-9"><a href="#cb18-9"></a>    <span class="st">"PSOE"</span> <span class="ot">=</span> <span class="st">"#e43d32"</span>,</span>
+<span id="cb18-10"><a href="#cb18-10"></a>    <span class="st">"PP"</span> <span class="ot">=</span> <span class="st">"#1D84CE"</span>,</span>
+<span id="cb18-11"><a href="#cb18-11"></a>    <span class="st">"VOX"</span> <span class="ot">=</span> <span class="st">"#61bb46"</span>,</span>
+<span id="cb18-12"><a href="#cb18-12"></a>    <span class="st">"UP-IU"</span> <span class="ot">=</span> <span class="st">"#772b69"</span>,</span>
+<span id="cb18-13"><a href="#cb18-13"></a>    <span class="st">"CS"</span> <span class="ot">=</span> <span class="st">"#EB6109"</span>,</span>
+<span id="cb18-14"><a href="#cb18-14"></a>    <span class="st">"OTROS"</span> <span class="ot">=</span> <span class="st">"#A7A9AC"</span>,</span>
+<span id="cb18-15"><a href="#cb18-15"></a>    <span class="st">"ERC"</span> <span class="ot">=</span> <span class="st">"#FFD700"</span>,</span>
+<span id="cb18-16"><a href="#cb18-16"></a>    <span class="st">"PNV"</span> <span class="ot">=</span> <span class="st">"#009A44"</span>,</span>
+<span id="cb18-17"><a href="#cb18-17"></a>    <span class="st">"MÁS PAÍS"</span> <span class="ot">=</span> <span class="st">"#8DB600"</span>,</span>
+<span id="cb18-18"><a href="#cb18-18"></a>    <span class="st">"EH-BILDU"</span> <span class="ot">=</span> <span class="st">"#000000"</span>,</span>
+<span id="cb18-19"><a href="#cb18-19"></a>    <span class="st">"BNG"</span> <span class="ot">=</span> <span class="st">"#005142"</span>,</span>
+<span id="cb18-20"><a href="#cb18-20"></a>    <span class="st">"CIU"</span> <span class="ot">=</span> <span class="st">"#FFCC00"</span>,</span>
+<span id="cb18-21"><a href="#cb18-21"></a>    <span class="st">"COMPROMIS"</span> <span class="ot">=</span> <span class="st">"#6AB023"</span></span>
+<span id="cb18-22"><a href="#cb18-22"></a>)</span>
+<span id="cb18-23"><a href="#cb18-23"></a></span>
+<span id="cb18-24"><a href="#cb18-24"></a>conteo <span class="ot">&lt;-</span> datos_elecciones_tidy <span class="sc">|&gt;</span> </span>
+<span id="cb18-25"><a href="#cb18-25"></a>  <span class="fu">filter</span>(ganador <span class="sc">==</span> <span class="st">"PP"</span> <span class="sc">|</span> ganador <span class="sc">==</span> <span class="st">"PSOE"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb18-26"><a href="#cb18-26"></a>  <span class="fu">count</span>(ganador, segundo) <span class="sc">|&gt;</span> </span>
+<span id="cb18-27"><a href="#cb18-27"></a>  <span class="fu">rename</span>(<span class="at">pp_psoe =</span> ganador)</span>
+<span id="cb18-28"><a href="#cb18-28"></a></span>
+<span id="cb18-29"><a href="#cb18-29"></a>datos_elecciones_tidy <span class="sc">|&gt;</span> </span>
+<span id="cb18-30"><a href="#cb18-30"></a>  <span class="fu">filter</span>(ganador <span class="sc">==</span> <span class="st">"PP"</span> <span class="sc">|</span> ganador <span class="sc">==</span> <span class="st">"PSOE"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb18-31"><a href="#cb18-31"></a>  <span class="fu">drop_na</span>(segundo) <span class="sc">|&gt;</span></span>
+<span id="cb18-32"><a href="#cb18-32"></a>  <span class="fu">mutate</span>(<span class="at">pp_psoe =</span> <span class="fu">ifelse</span>(ganador <span class="sc">==</span> <span class="st">"PP"</span>, <span class="st">"PP"</span>, <span class="st">"PSOE"</span>),</span>
+<span id="cb18-33"><a href="#cb18-33"></a>         <span class="at">segundo =</span> <span class="fu">factor</span>(segundo, <span class="at">levels =</span> orden)) <span class="sc">|&gt;</span></span>
+<span id="cb18-34"><a href="#cb18-34"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span></span>
+<span id="cb18-35"><a href="#cb18-35"></a>  <span class="fu">geom_bar</span>(<span class="fu">aes</span>(<span class="at">x =</span> fecha, <span class="at">fill =</span> segundo), <span class="at">position =</span> <span class="st">"dodge"</span>, <span class="at">alpha =</span> <span class="fl">0.8</span>) <span class="sc">+</span></span>
+<span id="cb18-36"><a href="#cb18-36"></a>  <span class="fu">scale_fill_manual</span>(<span class="at">values =</span> colores_partidos) <span class="sc">+</span></span>
+<span id="cb18-37"><a href="#cb18-37"></a>  <span class="fu">labs</span>(<span class="at">title =</span> <span class="st">"Número de veces que un partido queda </span><span class="sc">\n</span><span class="st">segundo cuando el PP o el PSOE ganan"</span>,</span>
+<span id="cb18-38"><a href="#cb18-38"></a>       <span class="at">x =</span> <span class="st">"Elecciones"</span>,</span>
+<span id="cb18-39"><a href="#cb18-39"></a>       <span class="at">y =</span> <span class="st">""</span>,</span>
+<span id="cb18-40"><a href="#cb18-40"></a>       <span class="at">fill =</span> <span class="st">"Partido"</span>) <span class="sc">+</span></span>
+<span id="cb18-41"><a href="#cb18-41"></a>  <span class="fu">theme_minimal</span>() <span class="sc">+</span></span>
+<span id="cb18-42"><a href="#cb18-42"></a>  <span class="fu">theme</span>(<span class="at">plot.title =</span> <span class="fu">element_text</span>(<span class="at">hjust =</span> <span class="fl">0.5</span>, <span class="at">face =</span> <span class="st">"bold"</span>),</span>
+<span id="cb18-43"><a href="#cb18-43"></a>        <span class="at">legend.position =</span> <span class="st">"bottom"</span>,</span>
+<span id="cb18-44"><a href="#cb18-44"></a>        <span class="at">strip.text =</span> <span class="fu">element_text</span>(<span class="at">face =</span> <span class="st">"bold"</span>)) <span class="sc">+</span></span>
+<span id="cb18-45"><a href="#cb18-45"></a>  <span class="fu">facet_wrap</span>(<span class="sc">~</span>pp_psoe, <span class="at">ncol =</span> <span class="dv">1</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+
+</div>
+<img data-src="entrega-grupal-diapos_files/figure-revealjs/unnamed-chunk-20-1.png" width="960" class="r-stretch"></section>
 <section id="en-qué-municipios-de-más-2000-habitantes-de-censo-provincias-o-autonomías-la-diferencia-entre-el-ganador-y-el-segundo-es-más-elevada" class="slide level2">
 <h2>¿En qué municipios de más 2000 habitantes de censo, provincias o autonomías la diferencia entre el ganador y el segundo es más elevada?</h2>
+</section>
+<section class="slide level2">
+
+<p>Municipios:</p>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1"></a>datos_elecciones_tidy <span class="sc">|&gt;</span> </span>
+<span id="cb19-2"><a href="#cb19-2"></a>  <span class="fu">filter</span>(censo <span class="sc">&gt;</span> <span class="dv">2000</span>) <span class="sc">|&gt;</span></span>
+<span id="cb19-3"><a href="#cb19-3"></a>  <span class="fu">group_by</span>(fecha, id_mun) <span class="sc">|&gt;</span></span>
+<span id="cb19-4"><a href="#cb19-4"></a>  <span class="fu">filter</span>(siglas_comun <span class="sc">==</span> ganador<span class="sc">|</span> siglas_comun <span class="sc">==</span> segundo) <span class="sc">|&gt;</span></span>
+<span id="cb19-5"><a href="#cb19-5"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(votos), <span class="at">.by_group =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb19-6"><a href="#cb19-6"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
+<span id="cb19-7"><a href="#cb19-7"></a>  <span class="fu">mutate</span>(<span class="at">diferencia =</span> votos <span class="sc">-</span> <span class="fu">lag</span>(votos)) <span class="sc">|&gt;</span> </span>
+<span id="cb19-8"><a href="#cb19-8"></a>  <span class="fu">slice_tail</span>(<span class="at">n =</span> <span class="dv">1</span>, <span class="at">by =</span> <span class="fu">c</span>(fecha, id_mun)) <span class="sc">|&gt;</span> </span>
+<span id="cb19-9"><a href="#cb19-9"></a>  <span class="fu">group_by</span>(fecha) <span class="sc">|&gt;</span> </span>
+<span id="cb19-10"><a href="#cb19-10"></a>  <span class="fu">arrange</span>(diferencia, <span class="at">.by_group =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb19-11"><a href="#cb19-11"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
+<span id="cb19-12"><a href="#cb19-12"></a>  <span class="fu">select</span>(fecha, municipio, ganador, segundo, diferencia) <span class="sc">|&gt;</span> </span>
+<span id="cb19-13"><a href="#cb19-13"></a>  <span class="fu">mutate</span>(<span class="at">diferencia =</span> <span class="fu">abs</span>(diferencia))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 11,618 × 5
+   fecha   municipio                   ganador segundo diferencia
+   &lt;glue&gt;  &lt;chr&gt;                       &lt;chr&gt;   &lt;chr&gt;        &lt;dbl&gt;
+ 1 2008-03 Madrid                      PP      PSOE        228121
+ 2 2008-03 Barcelona                   PSOE    CIU         184449
+ 3 2008-03 Murcia                      PP      PSOE         84045
+ 4 2008-03 València                    PP      PSOE         71186
+ 5 2008-03 Sevilla                     PSOE    PP           55676
+ 6 2008-03 Hospitalet de Llobregat, L' PSOE    PP           46851
+ 7 2008-03 Badalona                    PSOE    PP           36579
+ 8 2008-03 Sabadell                    PSOE    CIU          35008
+ 9 2008-03 Zaragoza                    PSOE    PP           34539
+10 2008-03 Terrassa                    PSOE    CIU          32319
+# ℹ 11,608 more rows</code></pre>
+</div>
+</div>
+</section>
+<section class="slide level2">
+
+<p>Provincias:</p>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1"></a>datos_elecciones_tidy <span class="sc">|&gt;</span> </span>
+<span id="cb21-2"><a href="#cb21-2"></a>  <span class="fu">group_by</span>(fecha, codigo_provincia) <span class="sc">|&gt;</span></span>
+<span id="cb21-3"><a href="#cb21-3"></a>  <span class="fu">filter</span>(siglas_comun <span class="sc">==</span> ganador<span class="sc">|</span> siglas_comun <span class="sc">==</span> segundo) <span class="sc">|&gt;</span></span>
+<span id="cb21-4"><a href="#cb21-4"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(votos), <span class="at">.by_group =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb21-5"><a href="#cb21-5"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
+<span id="cb21-6"><a href="#cb21-6"></a>  <span class="fu">mutate</span>(<span class="at">diferencia =</span> votos <span class="sc">-</span> <span class="fu">lag</span>(votos)) <span class="sc">|&gt;</span> </span>
+<span id="cb21-7"><a href="#cb21-7"></a>  <span class="fu">slice_tail</span>(<span class="at">n =</span> <span class="dv">1</span>, <span class="at">by =</span> <span class="fu">c</span>(fecha, codigo_provincia)) <span class="sc">|&gt;</span> </span>
+<span id="cb21-8"><a href="#cb21-8"></a>  <span class="fu">group_by</span>(fecha) <span class="sc">|&gt;</span> </span>
+<span id="cb21-9"><a href="#cb21-9"></a>  <span class="fu">arrange</span>(diferencia, <span class="at">.by_group =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb21-10"><a href="#cb21-10"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
+<span id="cb21-11"><a href="#cb21-11"></a>  <span class="fu">select</span>(fecha, codigo_provincia, ganador, segundo, diferencia) <span class="sc">|&gt;</span> </span>
+<span id="cb21-12"><a href="#cb21-12"></a>  <span class="fu">mutate</span>(<span class="at">diferencia =</span> <span class="fu">abs</span>(diferencia))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 312 × 5
+   fecha   codigo_provincia ganador segundo diferencia
+   &lt;glue&gt;  &lt;chr&gt;            &lt;chr&gt;   &lt;chr&gt;        &lt;dbl&gt;
+ 1 2008-03 51               PP      PSOE          5473
+ 2 2008-03 52               PP      PSOE           404
+ 3 2008-03 30               PP      PSOE           147
+ 4 2008-03 36               PP      PSOE           140
+ 5 2008-03 11               PSOE    PP              65
+ 6 2008-03 38               PSOE    PP              60
+ 7 2008-03 27               PSOE    PP              53
+ 8 2008-03 07               PP      PSOE            40
+ 9 2008-03 15               PP      PSOE            28
+10 2008-03 35               OTROS   PP              25
+# ℹ 302 more rows</code></pre>
+</div>
+</div>
+</section>
+<section class="slide level2">
+
+<p>Autonomías:</p>
+<div class="cell">
+<details>
+<summary>Code</summary>
+<div class="sourceCode cell-code" id="cb23"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb23-1"><a href="#cb23-1"></a>datos_elecciones_tidy <span class="sc">|&gt;</span> </span>
+<span id="cb23-2"><a href="#cb23-2"></a>  <span class="fu">group_by</span>(fecha, codigo_ccaa) <span class="sc">|&gt;</span></span>
+<span id="cb23-3"><a href="#cb23-3"></a>  <span class="fu">filter</span>(siglas_comun <span class="sc">==</span> ganador<span class="sc">|</span> siglas_comun <span class="sc">==</span> segundo) <span class="sc">|&gt;</span></span>
+<span id="cb23-4"><a href="#cb23-4"></a>  <span class="fu">arrange</span>(<span class="fu">desc</span>(votos), <span class="at">.by_group =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span></span>
+<span id="cb23-5"><a href="#cb23-5"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
+<span id="cb23-6"><a href="#cb23-6"></a>  <span class="fu">mutate</span>(<span class="at">diferencia =</span> votos <span class="sc">-</span> <span class="fu">lag</span>(votos)) <span class="sc">|&gt;</span> </span>
+<span id="cb23-7"><a href="#cb23-7"></a>  <span class="fu">slice_tail</span>(<span class="at">n =</span> <span class="dv">1</span>, <span class="at">by =</span> <span class="fu">c</span>(fecha, codigo_ccaa)) <span class="sc">|&gt;</span> </span>
+<span id="cb23-8"><a href="#cb23-8"></a>  <span class="fu">group_by</span>(fecha) <span class="sc">|&gt;</span> </span>
+<span id="cb23-9"><a href="#cb23-9"></a>  <span class="fu">arrange</span>(diferencia, <span class="at">.by_group =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb23-10"><a href="#cb23-10"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
+<span id="cb23-11"><a href="#cb23-11"></a>  <span class="fu">select</span>(fecha, codigo_ccaa, ganador, segundo, diferencia) <span class="sc">|&gt;</span> </span>
+<span id="cb23-12"><a href="#cb23-12"></a>  <span class="fu">mutate</span>(<span class="at">diferencia =</span> <span class="fu">abs</span>(diferencia))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</details>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 114 × 5
+   fecha   codigo_ccaa ganador segundo diferencia
+   &lt;glue&gt;  &lt;chr&gt;       &lt;chr&gt;   &lt;chr&gt;        &lt;dbl&gt;
+ 1 2008-03 18          PP      PSOE          5473
+ 2 2008-03 19          PP      PSOE           404
+ 3 2008-03 15          PP      PSOE           147
+ 4 2008-03 11          PSOE    PP              41
+ 5 2008-03 04          PP      PSOE            40
+ 6 2008-03 03          PSOE    PP              11
+ 7 2008-03 05          OTROS   PP               7
+ 8 2008-03 10          PP      PSOE             6
+ 9 2008-03 01          PSOE    PP               5
+10 2008-03 17          PP      CS               4
+# ℹ 104 more rows</code></pre>
+</div>
+</div>
 </section>
 <section id="cuáles-son-los-municipios-con-mayor-porcentaje-de-votos-nulos-de-españa" class="slide level2">
 <h2>¿Cuáles son los municipios con mayor porcentaje de votos nulos de España?</h2>
