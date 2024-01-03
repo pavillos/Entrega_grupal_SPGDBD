@@ -30,7 +30,6 @@ execute:
 rm(list = ls()) # Borramos variables de environment
 library(tidyverse)
 library(glue)
-library(skimr)
 library(sf)
 library(patchwork)
 ```
@@ -63,14 +62,6 @@ datos_elecciones_brutos <- read_csv(file = "./datos/datos_elecciones_brutos.csv"
 cod_mun <- read_csv(file = "./datos/cod_mun.csv")
 encuestas_brutos <- read_csv(file = "./datos/historical_surveys.csv")
 siglas <- read_csv(file = "./datos/siglas.csv")
-```
-
-```{r}
-#| include: false 
-datos_elecciones_brutos |> skim()
-cod_mun |> skim()
-encuestas_brutos |> skim()
-siglas |> skim()
 ```
 
 # 3. Depuración de los datos {#depuracion}
@@ -275,7 +266,7 @@ Primero, añadimos el número y porcentaje de votos obtenido por cada partido en
 datos_elecciones_tidy <- datos_elecciones_tidy |>
   mutate(votos = sum(votos), .by = c(fecha, id_mun, siglas_comun)) |> 
   distinct(fecha, id_mun, siglas_comun, .keep_all = TRUE) |>
-  mutate(porc_voto = (votos / (votos_candidaturas + votos_nulos)) * 100,
+  mutate(porc_voto = (votos / (votos_candidaturas + votos_blancos)) * 100,
          .by = c(fecha, id_mun))
 ```
 
@@ -283,6 +274,7 @@ datos_elecciones_tidy <- datos_elecciones_tidy |>
 
 ```{r}
 #| code-fold: true
+#| #| fig.align: 'center'
 
 partidos_nacionales <- c("PSOE", "PP", "VOX", "CS", "MP", "UP-IU")
 
@@ -496,6 +488,7 @@ mapa_2019_11 <- ggplot(municipios_2019_11 |>
 
 ```{r}
 #| code-fold: true
+#| #| fig.align: 'center'
 
 mapa_2008_03 + mapa_2011_11 + mapa_2015_12 + 
   mapa_2016_06 + mapa_2019_04 + mapa_2019_11 +
@@ -534,13 +527,7 @@ Finalmente, obentemos el resultado.
 
 ```{r}
 #| code-fold: true
-
-orden <- datos_elecciones_tidy |> 
-  filter(fecha == "2019-11") |> 
-  summarise(votos = sum(votos), .by = c(fecha, siglas_comun)) |> 
-  distinct(fecha, siglas_comun, .keep_all = TRUE) |> 
-  arrange(desc(votos)) |> 
-  pull(siglas_comun)
+#| #| fig.align: 'center'
 
 colores_partidos <- c(
     "PSOE" = "#e43d32",
@@ -558,6 +545,10 @@ colores_partidos <- c(
     "COMPROMIS" = "#6AB023"
 )
 
+datos_elecciones_tidy <- datos_elecciones_tidy |> 
+  mutate(ganador = factor(ganador, levels = c("PSOE", "PP", "VOX", "UP-IU", "CS", "OTROS", "ERC", "PNV", "MÁS PAÍS", "EH-BILDU", "BNG", "CIU", "COMPROMIS")),
+         segundo = factor(segundo, levels = c("PSOE", "PP", "VOX", "UP-IU", "CS", "OTROS", "ERC", "PNV", "MÁS PAÍS", "EH-BILDU", "BNG", "CIU", "COMPROMIS")))
+
 conteo <- datos_elecciones_tidy |> 
   filter(ganador == "PP" | ganador == "PSOE") |>
   count(ganador, segundo) |> 
@@ -566,8 +557,7 @@ conteo <- datos_elecciones_tidy |>
 datos_elecciones_tidy |> 
   filter(ganador == "PP" | ganador == "PSOE") |>
   drop_na(segundo) |>
-  mutate(pp_psoe = ifelse(ganador == "PP", "PP", "PSOE"),
-         segundo = factor(segundo, levels = orden)) |>
+  mutate(pp_psoe = ifelse(ganador == "PP", "PP", "PSOE")) |> 
   ggplot() +
   geom_bar(aes(x = fecha, fill = segundo), position = "dodge", alpha = 0.8) +
   scale_fill_manual(values = colores_partidos) +
@@ -654,13 +644,121 @@ datos_elecciones_tidy |>
 
 ## ¿Cuáles son los municipios con mayor porcentaje de votos nulos de España?
 
+Primero, añadimos el número y porcentaje de votos nulos en cada municipio y elección.
+
+```{r}
+#| code-fold: true
+
+datos_elecciones_tidy_nulos <- datos_elecciones_tidy |>
+  mutate(total_votos_nulos = sum(votos_nulos), .by = c(fecha, id_mun)) |> 
+  distinct(fecha, id_mun, .keep_all = TRUE) |>
+  mutate(porc_voto_nulos = (total_votos_nulos / (votos_candidaturas + votos_blancos + votos_nulos)) * 100,
+         .by = c(fecha, id_mun))
+```
+
+------------------------------------------------------------------------
+
+Luego, obtenemos los resultados.
+
+```{r}
+#| code-fold: true
+
+datos_elecciones_tidy_nulos |> 
+  group_by(fecha) |>
+  arrange(desc(porc_voto_nulos), .by_group = TRUE) |>
+  ungroup() |> 
+  select(fecha, municipio, porc_voto_nulos)
+```
+
 ------------------------------------------------------------------------
 
 ## ¿En qué sitios hay mayor participación? ¿Quién ganó en los sitios con mayor participación y donde menos? ¿A quién le beneficia la baja participación?
 
 ------------------------------------------------------------------------
 
+Vamos a mostrar los 5 municipios con mayor y menor participación en cada elección.
+
+```{r}
+#| code-fold: true
+#| fig.align: 'center'
+
+datos_elecciones_tidy |> 
+  slice_max(porc_voto, by = c(fecha, id_mun)) |> 
+  group_by(fecha) |>
+  arrange(desc(participacion_2), .by_group = TRUE) |>
+  slice(c(head(row_number(), 10), tail(row_number(), 10))) |> 
+  ungroup() |> 
+  ggplot() +
+  geom_point(aes(x = fct_reorder(id_mun, participacion_2), y = participacion_2, color = ganador), alpha = 0.8) +
+  scale_color_manual(values = colores_partidos) +
+  labs(title = "Los cinco municipios con mayor y menor participación",
+       x = "Municipio",
+       y = "Participación",
+       color = "Ganador") +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5),
+        axis.text.x = element_text(angle = 30, hjust = 1)) +
+  facet_wrap(~fecha, scales = "free_x", ncol = 2)
+```
+
+
+------------------------------------------------------------------------
+
 ## ¿Cómo analizar la relación entre censo y voto? ¿Es cierto que ciertos partidos ganan lo rural?
+
+------------------------------------------------------------------------
+
+Primero, analizamos la relación entre censo y voto mediante correlación de Pearson.
+
+```{r}
+#| code-fold: true
+#| fig.align: 'center'
+
+correlaciones <- datos_elecciones_tidy |> 
+  slice_max(porc_voto, by = c(fecha, id_mun)) |> 
+  group_by(fecha) |> 
+  summarize(correlacion = cor(censo, votos, method = "pearson"))
+
+datos_elecciones_tidy |> 
+  slice_max(porc_voto, by = c(fecha, id_mun)) |> 
+  ggplot() +
+  geom_point(aes(x = censo, y = votos, color = ganador), alpha = 0.8) +
+  scale_color_manual(values = colores_partidos) +
+  labs(title = "Relación entre censo y voto",
+       x = "Censo",
+       y = "Votos",
+       color = "Ganador") +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5)) +
+  facet_wrap(~fecha, scales = "free_x", ncol = 2) +
+  geom_text(data = correlaciones, aes(label = paste("r = ", round(correlacion, 3), sep = "")),
+            x = -Inf, y = Inf, hjust = -0.2, vjust = 1.1)
+```
+
+------------------------------------------------------------------------
+
+Despúes, visualizamos el número de veces que los partidos ganan en municipios con un censo inferior a 1000 habitantes (rural) y en aquellos con un censo superior (urbana).
+
+```{r}
+#| code-fold: true
+#| fig.align: 'center'
+
+datos_elecciones_tidy <- datos_elecciones_tidy |> 
+  mutate(tipo_area = if_else(censo < 1000, "Rural", "Urbana"))
+
+datos_elecciones_tidy |> 
+  slice_max(porc_voto, by = c(fecha, id_mun)) |> 
+  ggplot() +
+  geom_bar(aes(x = tipo_area, fill = ganador), position = "dodge", alpha = 0.8) +
+  scale_fill_manual(values = colores_partidos) +
+  labs(title = "Número de veces que los partidos \nganan en municipios rurales y urbanos",
+       x = "Tipo de área",
+       y = "Victorias",
+       fill = "Ganador") +
+  theme_minimal() +
+  theme(plot.title = element_text(face = "bold", hjust = 0.5),
+        legend.position = "bottom")
+```
 
 ------------------------------------------------------------------------
 
