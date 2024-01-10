@@ -307,6 +307,36 @@ datos_elecciones_tidy |>
 
 ------------------------------------------------------------------------
 
+Cantidad de veces, por municipio, que han superado en porcentaje de voto los partidos nacionalistas y autonómicos en conjunto a los partidos nacionales a lo largo de las 6 elecciones
+
+```{r}
+datos_elecciones_tidy |> 
+  summarise(porc_total = sum(porc_voto), .by = c(group, fecha, id_mun, municipio, codigo_provincia)) |> 
+  mutate(posicion_grupo = rank(-porc_total), .by = c(fecha, id_mun)) |> 
+  filter(group == "Autonómicos/Nacionalistas" & posicion_grupo == 1) |> 
+  count(codigo_provincia, sort = TRUE) |> 
+  left_join(cod_ccaa_provincias, by = c("codigo_provincia" = "CPRO")) |> 
+  select(-c(codigo_provincia, CODAUTO))
+```
+
+------------------------------------------------------------------------
+
+Separado por elecciones:
+
+```{r}
+datos_elecciones_tidy |> 
+  summarise(porc_total = sum(porc_voto), .by = c(group, fecha, id_mun, municipio, codigo_provincia)) |> 
+  mutate(posicion_grupo = rank(-porc_total), .by = c(fecha, id_mun)) |> 
+  filter(group == "Autonómicos/Nacionalistas" & posicion_grupo == 1) |> 
+  count(fecha, codigo_provincia) |> 
+  left_join(cod_ccaa_provincias, by = c("codigo_provincia" = "CPRO")) |> 
+  select(-c(codigo_provincia, CODAUTO)) |> 
+  arrange(fecha, desc(n))
+```
+------------------------------------------------------------------------
+
+
+
 ## ¿Cuál el partido ganador en los municipios de más de 100 000 habitantes de censo en cada una de las elecciones?
 
 ------------------------------------------------------------------------
