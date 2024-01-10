@@ -278,11 +278,14 @@ datos_elecciones_tidy <- datos_elecciones_tidy |>
 
 partidos_nacionales <- c("PSOE", "PP", "VOX", "CS", "MP", "UP-IU")
 
-datos_elecciones_tidy |> 
+datos_elecciones_tidy <- 
+ datos_elecciones_tidy |> 
  mutate(group = if_else(siglas_comun %in% partidos_nacionales, "Nacionales",
                         if_else(siglas_comun == "OTROS", 
                                 "OTROS", "Autonómicos/Nacionalistas"))) |>
-  mutate(group = forcats::fct_relevel(group, "Nacionales", "Autonómicos/Nacionalistas", "OTROS")) |> 
+  mutate(group = forcats::fct_relevel(group, "Nacionales", "Autonómicos/Nacionalistas", "OTROS"))
+
+datos_elecciones_tidy |> 
   filter(group != "OTROS") |>
   summarise(porc_total = sum(porc_voto), .by = c(group, fecha, id_mun)) |>
   ggplot() +
