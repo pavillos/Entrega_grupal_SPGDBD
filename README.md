@@ -35,11 +35,14 @@ Para ejecutar este proyecto, es necesario tener instalado R y los siguientes paq
 - `sf`
 - `patchwork`
 - `Metrics`
+- `ggridges`
+- `showtext`
+- `sysfonts`
 
 ## 🚀 Ejecución
 
 Para ejecutar el análisis:
-  1. Abre el archivo entrega-grupal-diabpos.qmd en RStudio.
+  1. Abre el archivo entrega-grupal-diapos.qmd en RStudio.
   2. Configura el entorno de R para utilizar el directorio del proyecto como directorio de trabajo.
   3. Ejecuta el documento entrega-grupal-diapos.qmd para generar el análisis en formato HTML.
 
@@ -47,3 +50,6 @@ Para ejecutar el análisis:
 - 🌍 LinkedIn: [Pablo Villoslada-Blanco](https://www.linkedin.com/in/pablo-villoslada-blanco-5a4b2316a/)
 - 🔍 ResearchGate: [Pablo Villoslada-Blanco](https://www.researchgate.net/profile/Pablo-Villoslada-Blanco)
 - 📧 Email: [pavillos@ucm.es](mailto:pavillos@ucm.es), [pvilloslada@cnio.es](mailto:pvilloslada@cnio.es), and [pablo.villoslada@gmail.com](mailto:pablo.villoslada@gmail.com)
+- 🔍 ResearchGate: [Almudena Moreno-Ribera](https://www.researchgate.net/profile/Almudena-Moreno-Ribera)
+- 📧 Email: [almmor02@ucm.es](mailto:almmor02@ucm.es)
+
