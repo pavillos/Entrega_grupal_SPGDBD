@@ -1000,7 +1000,6 @@ theme_update(
 #| code-fold: true
 #| fig.align: 'center'
 
-
 graf <- encuestas_error |> 
   filter(siglas_comun %in% partidos_nacionales) |>
   mutate(error = intencion_voto - porc_voto_real) |> 
@@ -1019,7 +1018,7 @@ graf <- encuestas_error |>
        x = "",
        y = "Error cometido",
        caption = "A. Moreno-Ribera \n P. Villoslada-Blanco") +
-  theme_update(plot.title = element_text(size = 15, face = "bold", family = "Montserrat"),
+  theme(plot.title = element_text(size = 16, face = "bold", family = "Montserrat"),
         plot.subtitle = element_text(size = 14, family = "Montserrat"),
         plot.caption = element_text(size = 8, family = "Montserrat"),
         panel.grid.minor = element_blank(),
