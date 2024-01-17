@@ -517,8 +517,7 @@ mapa_2008_03 <- ggplot(municipios_2008_03 |>
   geom_blank(data = partidos_leyenda, aes(fill = siglas_comun)) +
   scale_fill_manual(values = c("PP" = "#1f77b4", "PSOE" = "#d62728",
                                "CIU" = "#1c3687", "UP-IU" = "#7D3C98", "ERC" = "#FFD700")) +
-  theme_minimal() +
-  labs(title = "2018-03",
+  labs(title = "2008-03",
        fill = "Partido ganador") +
   theme(
     plot.title = element_text(hjust = 0.5),
@@ -534,12 +533,10 @@ mapa_2008_03 <- ggplot(municipios_2008_03 |>
 mapa_2011_11 <- ggplot(municipios_2011_11 |> 
                          mutate(siglas_comun = factor(siglas_comun, levels = c("PP", "PSOE", "CIU", "UP-IU", "ERC")))) +
   geom_sf(aes(fill = siglas_comun), color = "grey20") +
-  geom_blank(data = partidos_leyenda, aes(fill = siglas_comun)) +
   scale_fill_manual(values = c("PP" = "#1f77b4", "PSOE" = "#d62728",
                                "CIU" = "#1c3687", "UP-IU" = "#7D3C98", "ERC" = "#FFD700")) +
-  theme_minimal() +
-  labs(title = "2011-11",
-       fill = "Partido ganador") +
+  labs(title = "2011-11") +
+  guides(fill = "none") +
   theme(
     plot.title = element_text(hjust = 0.5),
     axis.text.x = element_blank(),
@@ -554,12 +551,10 @@ mapa_2011_11 <- ggplot(municipios_2011_11 |>
 mapa_2015_12 <- ggplot(municipios_2015_12 |> 
                          mutate(siglas_comun = factor(siglas_comun, levels = c("PP", "PSOE", "CIU", "UP-IU", "ERC")))) +
   geom_sf(aes(fill = siglas_comun), color = "grey20") +
-  geom_blank(data = partidos_leyenda, aes(fill = siglas_comun)) +
   scale_fill_manual(values = c("PP" = "#1f77b4", "PSOE" = "#d62728",
                                "CIU" = "#1c3687", "UP-IU" = "#7D3C98", "ERC" = "#FFD700")) +
-  theme_minimal() +
-  labs(title = "2015-12",
-       fill = "Partido ganador") +
+  labs(title = "2015-12") +
+  guides(fill = "none") +
   theme(
     plot.title = element_text(hjust = 0.5),
     axis.text.x = element_blank(),
@@ -574,12 +569,10 @@ mapa_2015_12 <- ggplot(municipios_2015_12 |>
 mapa_2016_06 <- ggplot(municipios_2016_06 |> 
                          mutate(siglas_comun = factor(siglas_comun, levels = c("PP", "PSOE", "CIU", "UP-IU", "ERC")))) +
   geom_sf(aes(fill = siglas_comun), color = "grey20") +
-  geom_blank(data = partidos_leyenda, aes(fill = siglas_comun)) +
   scale_fill_manual(values = c("PP" = "#1f77b4", "PSOE" = "#d62728",
                                "CIU" = "#1c3687", "UP-IU" = "#7D3C98", "ERC" = "#FFD700")) +
-  theme_minimal() +
-  labs(title = "2016-06",
-       fill = "Partido ganador") +
+  labs(title = "2016-06") +
+  guides(fill = "none") +
   theme(
     plot.title = element_text(hjust = 0.5),
     axis.text.x = element_blank(),
@@ -594,12 +587,10 @@ mapa_2016_06 <- ggplot(municipios_2016_06 |>
 mapa_2019_04 <- ggplot(municipios_2019_04 |> 
                          mutate(siglas_comun = factor(siglas_comun, levels = c("PP", "PSOE", "CIU", "UP-IU", "ERC")))) +
   geom_sf(aes(fill = siglas_comun), color = "grey20") +
-  geom_blank(data = partidos_leyenda, aes(fill = siglas_comun)) +
   scale_fill_manual(values = c("PP" = "#1f77b4", "PSOE" = "#d62728",
                                "CIU" = "#1c3687", "UP-IU" = "#7D3C98", "ERC" = "#FFD700")) +
-  theme_minimal() +
-  labs(title = "2019-04",
-       fill = "Partido ganador") +
+  labs(title = "2019-04") +
+  guides(fill = "none") +
   theme(
     plot.title = element_text(hjust = 0.5),
     axis.text.x = element_blank(),
@@ -614,12 +605,10 @@ mapa_2019_04 <- ggplot(municipios_2019_04 |>
 mapa_2019_11 <- ggplot(municipios_2019_11 |> 
                          mutate(siglas_comun = factor(siglas_comun, levels = c("PP", "PSOE", "CIU", "UP-IU", "ERC")))) +
   geom_sf(aes(fill = siglas_comun), color = "grey20") +
-  geom_blank(data = partidos_leyenda, aes(fill = siglas_comun)) +
   scale_fill_manual(values = c("PP" = "#1f77b4", "PSOE" = "#d62728",
                                "CIU" = "#1c3687", "UP-IU" = "#7D3C98", "ERC" = "#FFD700")) +
-  theme_minimal() +
-  labs(title = "2019-11",
-       fill = "Partido ganador") +
+  labs(title = "2019-11") +
+  guides(fill = "none") +
   theme(
     plot.title = element_text(hjust = 0.5),
     axis.text.x = element_blank(),
@@ -713,7 +702,6 @@ datos_elecciones_tidy |>
        x = "Elecciones",
        y = "",
        fill = "Partido") +
-  theme_minimal() +
   theme(plot.title = element_text(hjust = 0.5, face = "bold"),
         legend.position = "bottom",
         strip.text = element_text(face = "bold")) +
@@ -831,19 +819,19 @@ Vamos a mostrar los 5 municipios con mayor y menor participación en cada elecci
 #| fig.align: 'center'
 
 datos_elecciones_tidy |> 
+  mutate(participacion = votos_candidaturas + votos_blancos) |> 
   slice_max(porc_voto, by = c(fecha, id_mun)) |> 
   group_by(fecha) |>
-  arrange(desc(participacion_2), .by_group = TRUE) |>
-  slice(c(head(row_number(), 10), tail(row_number(), 10))) |> 
+  arrange(desc(participacion), .by_group = TRUE) |>
+  slice(c(head(row_number(), 5), tail(row_number(), 5))) |> 
   ungroup() |> 
   ggplot() +
-  geom_point(aes(x = fct_reorder(id_mun, participacion_2), y = participacion_2, color = ganador), alpha = 0.8) +
+  geom_point(aes(x = fct_reorder(id_mun, participacion), y = participacion, color = ganador), alpha = 0.8) +
   scale_color_manual(values = colores_partidos) +
   labs(title = "Los cinco municipios con mayor y menor participación",
        x = "Municipio",
        y = "Participación",
        color = "Ganador") +
-  theme_minimal() +
   theme(plot.title = element_text(face = "bold", hjust = 0.5),
         axis.text.x = element_text(angle = 30, hjust = 1)) +
   facet_wrap(~fecha, scales = "free_x", ncol = 2)
@@ -875,7 +863,6 @@ datos_elecciones_tidy |>
        x = "Censo",
        y = "Votos",
        color = "Ganador") +
-  theme_minimal() +
   theme(plot.title = element_text(face = "bold", hjust = 0.5)) +
   facet_wrap(~fecha, scales = "free_x", ncol = 2) +
   geom_text(data = correlaciones, aes(label = paste("r = ", round(correlacion, 3), sep = "")),
@@ -902,7 +889,6 @@ datos_elecciones_tidy |>
        x = "Tipo de área",
        y = "Victorias",
        fill = "Ganador") +
-  theme_minimal() +
   theme(plot.title = element_text(face = "bold", hjust = 0.5),
         legend.position = "bottom")
 ```
@@ -1032,7 +1018,17 @@ graf <- encuestas_error |>
        subtitle = "Error = %Intención de voto - %Voto real",
        x = "",
        y = "Error cometido",
-       caption = "A. Moreno-Ribera \n P. Villoslada-Blanco")
+       caption = "A. Moreno-Ribera \n P. Villoslada-Blanco") +
+  theme_update(plot.title = element_text(size = 15, face = "bold", family = "Montserrat"),
+        plot.subtitle = element_text(size = 14, family = "Montserrat"),
+        plot.caption = element_text(size = 8, family = "Montserrat"),
+        panel.grid.minor = element_blank(),
+        panel.grid.major = element_line(linewidth = 0.1),
+        axis.text = element_text(size = 10),
+        axis.title = element_text(size = 12),
+        legend.position = "bottom",
+        legend.title = element_blank(),
+        legend.text = element_text(size = 8))
 
 plotly::ggplotly(graf, tooltip = "text")
 ```
@@ -1076,7 +1072,7 @@ encuestas_error |>
 
 **Software para gestión de bases de datos**
 
-[**Autores:** <a href="https://www.linkedin.com/in/almudena-moreno-ribera-5b1389233?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3BJxW49sp%2BS8WrZmgJWFAGSQ%3D%3D" target="_blank">Almudena Moreno Ribera</a> (DNI: 00000000-X) y <a href="https://www.linkedin.com/in/pablo-villoslada-blanco-5a4b2316a?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3B%2BykJQkDhTvqHG%2Bh5Ya24zA%3D%3D" target="_blank">Pablo Villoslada-Blanco</a> (DNI: 16615024-P)]{style="font-size: 20px;"}
+[**Autores:** <a href="https://www.linkedin.com/in/almudena-moreno-ribera-5b1389233?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3BJxW49sp%2BS8WrZmgJWFAGSQ%3D%3D" target="_blank">Almudena Moreno Ribera</a> (DNI: 47524050-R) y <a href="https://www.linkedin.com/in/pablo-villoslada-blanco-5a4b2316a?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3B%2BykJQkDhTvqHG%2Bh5Ya24zA%3D%3D" target="_blank">Pablo Villoslada-Blanco</a> (DNI: 16615024-P)]{style="font-size: 20px;"}
 
 <img src="./datos/imagen.png" style="max-width: 33%; height: auto; margin-top: 20px;"/>
 
