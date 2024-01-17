@@ -5,6 +5,7 @@
 
 Este repositorio contiene el proyecto de análisis de datos electorales para el curso 2023/24, enfocado en las elecciones al Congreso de los Diputados de España desde 2008 hasta 2019. 
 El análisis abarca tanto los resultados electorales como el acierto de las encuestas previas a las elecciones.
+En la dirección [](https://pavillos.github.io/Entrega_grupal_SPGDBD/entrega-grupal-diapos#/entrega-grupal) de puede acceder directamente a la presentación final.
 
 ## 👥 Integrantes del Grupo
 
