@@ -800,9 +800,68 @@ datos_elecciones_tidy |>
 
 ## ¿Cómo calibrar el error de las encuestas? ¿Cómo visualizarlo? (recuerda que las encuestas son intención de voto a nivel nacional).
 
+
+Lo primero que hay que hacer es crear una variable que indique a que elección se refiere cada encuesta.
+
+```{r}
+encuestas_tidy <-
+  encuestas_tidy |> 
+  mutate(fecha = str_sub(date_elec, end = 7), .after = date_elec)
+```
+
+------------------------------------------------------------------------
+
+Sumamos los votos por siglas y por elecciones y la participación total en cada elección.
+```{r}
+votos <- 
+  datos_elecciones_tidy |> 
+  summarise(total_votos_candidaturas = sum(votos), 
+             .by = c(siglas_comun,fecha))
+
+participacion <- 
+  datos_elecciones_tidy |> 
+  group_by(fecha) |> 
+  distinct(municipio, .keep_all = TRUE) |> 
+  summarise(total_participacion = sum(votos_candidaturas + votos_blancos))
+
+```
+
+------------------------------------------------------------------------
+
+Unimos la información con los datos de las encuestas
+
+```{r}
+encuestas_error <- 
+  votos |> 
+  left_join(participacion, by = "fecha") |> 
+  mutate(porc_voto_real = (total_votos_candidaturas / total_participacion)*100) |>
+  right_join(encuestas_tidy, by = c("fecha", "siglas_comun")) |> 
+  relocate(intencion_voto, .after = porc_voto_real)
+```
+
+El error lo vamos a calcular como la diferencia entre el porcentaje de voto real y el porcentaje de voto estimado
+
+```{r}
+encuestas_error <-
+  encuestas_error |>
+  mutate(error = Metrics::ae(porc_voto_real,intencion_voto),
+         .after = intencion_voto)
+```
+
 ------------------------------------------------------------------------
 
 ## ¿En qué elección se equivocaron más las encuestas?
+
+Calculamos la media y de los errores por elecciones
+
+```{r}
+encuestas_error |> 
+  drop_na(porc_voto_real, intencion_voto) |> 
+  summarise(media_error = mean(error, na.rm = TRUE),
+            .by = c(fecha))
+```
+
+La elección en la que cometieron más error fue en la de diciembre de 2015
 
 ------------------------------------------------------------------------
 
@@ -810,7 +869,54 @@ datos_elecciones_tidy |>
 
 ------------------------------------------------------------------------
 
+```{r}
+#| code-fold: true
+#| fig.align: 'center'
+
+encuestas_error <- encuestas_error |> 
+  mutate(siglas_comun = factor(siglas_comun, levels = c("PSOE", "PP", "VOX", "UP-IU", "CS", "OTROS", "ERC", "PNV", "MÁS PAÍS", "EH-BILDU", "BNG", "CIU", "COMPROMIS")))
+
+# Falta mejorar este gráfico pero es para que se vea la idea
+encuestas_error |> 
+  filter(siglas_comun %in% partidos_nacionales) |>
+  summarise(media_error = mean(error, na.rm = TRUE), 
+            .by = c(fecha, siglas_comun)) |> 
+  ggplot() +
+  aes(x = siglas_comun, y = media_error, 
+      color = siglas_comun, fill = siglas_comun) +
+  geom_boxplot(aes(alpha = 0.5)) +
+  scale_color_manual(values = colores_partidos) + 
+  scale_fill_manual(values = colores_partidos) + 
+  theme_minimal()
+
+```
+
+------------------------------------------------------------------------
+
 ## ¿Qué casas encuestadores acertaron más y cuales se desviaron más de los resultados?
+
+------------------------------------------------------------------------
+
+Las encuestadoras que acertaron más en cada elección.
+
+```{r}
+encuestas_error |> 
+  summarise(media_error = mean(error, na.rm = TRUE), 
+            .by = c(pollster,fecha)) |> 
+  slice_min(media_error, n = 1, by = fecha)
+```
+
+------------------------------------------------------------------------
+
+
+Las encuestadoras que se desviaron más en cada elección.
+```{r}
+encuestas_error |> 
+  summarise(media_error = mean(error, na.rm = TRUE), 
+            .by = c(pollster,fecha)) |> 
+  slice_max(media_error, n = 1, by = fecha)
+```
+
 
 ::: {style="text-align: center;"}
 # Entrega grupal
