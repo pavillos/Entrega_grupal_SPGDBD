@@ -19,6 +19,8 @@ El análisis abarca tanto los resultados electorales como el acierto de las encu
 - `entre-grupal-diapos.qmd`, `entrega-grupal-diapos.html` y `entrega-grupal-diapos_files`: Documentos del ejercicio resuelto.
 - `style.scss`: Documento de estilos.
 - `GRUPAL.Rproj`: R project.
+- `.Rproj.user`: Directorio generado por RStudio que almacena configuraciones y estados de la sesión específicos del usuario.
+- `.gitignore`: Archivo utilizado por Git para excluir archivos y directorios específicos del seguimiento y del control de versiones.
 
 ## ⚙️ Configuración
 
