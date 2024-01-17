@@ -275,7 +275,7 @@ encuestas_tidy <- encuestas_tidy |>
     4.4. [Pregunta 4](#pregunta4)
 
     4.5. [Pregunta 5](#pregunta5)
-    
+
 ------------------------------------------------------------------------
 
 ## Índice
@@ -283,15 +283,15 @@ encuestas_tidy <- encuestas_tidy |>
 4.  [Preguntas](#preguntas)
 
     4.6. [Pregunta 6](#pregunta6)
-    
+
     4.7. [Pregunta 7](#pregunta7)
-    
+
     4.8. [Pregunta 8](#pregunta8)
-    
+
     4.9. [Pregunta 9](#pregunta9)
-    
+
     4.10. [Pregunta 10](#pregunta10)
-    
+
     4.11. [Pregunta 11](#pregunta11)
 
 ------------------------------------------------------------------------
@@ -863,7 +863,6 @@ participacion <-
   group_by(fecha) |> 
   distinct(municipio, .keep_all = TRUE) |> 
   summarise(total_participacion = sum(votos_candidaturas + votos_blancos))
-
 ```
 
 ------------------------------------------------------------------------
@@ -969,12 +968,12 @@ plotly::ggplotly(graf, tooltip = "text")
 
 ------------------------------------------------------------------------
 
-
 ```{r}
 #| fig.align: 'center'
 
 graf + facet_wrap(~fecha)
 ```
+
 ------------------------------------------------------------------------
 
 ## ¿Qué casas encuestadores acertaron más y cuales se desviaron más de los resultados?
