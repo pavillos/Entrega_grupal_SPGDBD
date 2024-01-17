@@ -260,6 +260,40 @@ encuestas_tidy <- encuestas_tidy |>
 
 ------------------------------------------------------------------------
 
+## Índice
+
+4.  [Preguntas](#preguntas)
+
+    4.1. [Pregunta 1](#pregunta1)
+
+    4.2. [Pregunta 2](#pregunta2)
+
+    4.3. [Pregunta 3](#pregunta3)
+
+    4.4. [Pregunta 4](#pregunta4)
+
+    4.5. [Pregunta 5](#pregunta5)
+    
+------------------------------------------------------------------------
+
+## Índice
+
+4.  [Preguntas](#preguntas)
+
+    4.6. [Pregunta 6](#pregunta6)
+    
+    4.7. [Pregunta 7](#pregunta7)
+    
+    4.8. [Pregunta 8](#pregunta8)
+    
+    4.9. [Pregunta 9](#pregunta9)
+    
+    4.10. [Pregunta 10](#pregunta10)
+    
+    4.11. [Pregunta 11](#pregunta11)
+
+------------------------------------------------------------------------
+
 ## ¿Cómo se reparte el voto de partidos de ámbito nacional (PSOE, PP, VOX, CS, MP, UP - IU) frente a los partidos de corte autonómico o nacionalista?
 
 ------------------------------------------------------------------------
@@ -278,7 +312,7 @@ datos_elecciones_tidy <- datos_elecciones_tidy |>
 
 ```{r}
 #| code-fold: true
-#| #| fig.align: 'center'
+#| fig.align: 'center'
 
 partidos_nacionales <- c("PSOE", "PP", "VOX", "CS", "MP", "UP-IU")
 
@@ -527,7 +561,7 @@ mapa_2019_11 <- ggplot(municipios_2019_11 |>
 
 ```{r}
 #| code-fold: true
-#| #| fig.align: 'center'
+#| fig.align: 'center'
 
 mapa_2008_03 + mapa_2011_11 + mapa_2015_12 + 
   mapa_2016_06 + mapa_2019_04 + mapa_2019_11 +
@@ -566,7 +600,7 @@ Finalmente, obentemos el resultado.
 
 ```{r}
 #| code-fold: true
-#| #| fig.align: 'center'
+#| fig.align: 'center'
 
 colores_partidos <- c(
     "PSOE" = "#e43d32",
