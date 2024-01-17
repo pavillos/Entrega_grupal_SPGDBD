@@ -42,7 +42,7 @@ Para ejecutar este proyecto, es necesario tener instalado R y los siguientes paq
 ## 🚀 Ejecución
 
 Para ejecutar el análisis:
-  1. Abre el archivo entrega-grupal-diabpos.qmd en RStudio.
+  1. Abre el archivo entrega-grupal-diapos.qmd en RStudio.
   2. Configura el entorno de R para utilizar el directorio del proyecto como directorio de trabajo.
   3. Ejecuta el documento entrega-grupal-diapos.qmd para generar el análisis en formato HTML.
 
