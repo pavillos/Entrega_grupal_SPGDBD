@@ -13,26 +13,26 @@ El análisis abarca tanto los resultados electorales como el acierto de las encu
 
 ## 📁 Estructura del Repositorio
 
-- `/datos`: Carpeta que contiene los conjuntos de datos utilizados.
-- `analisis.qmd`: Documento Quarto con el análisis realizado.
-- `analisis.html`: Versión HTML del análisis para visualización.
+- `README.md`: documento README.
+- `/datos`: Carpeta que contiene los conjuntos de datos utilizados y algunas imágenes.
+- `entrega-grupal.qmd`, `entrega-grupal.html` y `entre-grupal_files`: Documentos del enunciado del ejercicio.
+- `entre-grupal-diapos.qmd`, `entrega-grupal-diapos.html` y `entrega-grupal-diapos_files`: Documentos del ejercicio resuelto.
+- `style.scss`: Documento de estilos.
+- `GRUPAL.Rproj`: R project.
 
 ## ⚙️ Configuración
 
 Para ejecutar este proyecto, es necesario tener instalado R y los siguientes paquetes:
 
 - `tidyverse`
-- `lubridate`
-- `glue`
-- `forcats`
 - `ggplot2`
 - `plotly`
-
-Puede instalarlos ejecutando:
-
-```R
-install.packages(c("tidyverse", "lubridate", "glue", "forcats", "ggplot2", "plotly"))
-```
+- `lubridate`
+- `forcats`
+- `glue`
+- `sf`
+- `patchwork`
+- `Metrics`
 
 ## 🚀 Ejecución
 
