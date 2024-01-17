@@ -878,21 +878,65 @@ La elección en la que cometieron más error fue en la de diciembre de 2015
 encuestas_error <- encuestas_error |> 
   mutate(siglas_comun = factor(siglas_comun, levels = c("PSOE", "PP", "VOX", "UP-IU", "CS", "OTROS", "ERC", "PNV", "MÁS PAÍS", "EH-BILDU", "BNG", "CIU", "COMPROMIS")))
 
-# Falta mejorar este gráfico pero es para que se vea la idea
-encuestas_error |> 
-  filter(siglas_comun %in% partidos_nacionales) |>
-  summarise(media_error = mean(error, na.rm = TRUE), 
-            .by = c(fecha, siglas_comun)) |> 
-  ggplot() +
-  aes(x = siglas_comun, y = media_error, 
-      color = siglas_comun, fill = siglas_comun) +
-  geom_boxplot(aes(alpha = 0.5)) +
-  scale_color_manual(values = colores_partidos) + 
-  scale_fill_manual(values = colores_partidos) + 
-  theme_minimal()
+library(showtext)
+library(sysfonts)
+
+font_add_google(name = "Montserrat")
+showtext_auto()
+theme_set(theme_minimal())
+theme_update(
+  plot.title =
+    element_text(size = 24, face = "bold", family = "Montserrat"),
+  plot.subtitle = element_text(size = 16, family = "Montserrat"),
+  plot.caption = element_text(size = 12, family = "Montserrat"),
+ # panel.grid.minor = element_blank(),
+  panel.grid.major = element_line(linewidth = 0.1),
+  axis.text = element_text(size = 12),
+  axis.title = element_text(size = 16),
+  legend.position = "bottom",
+  legend.title = element_blank(),
+  legend.text = element_text (size = 10))
 
 ```
 
+------------------------------------------------------------------------
+
+```{r}
+#| warning: false
+#| code-fold: true
+#| fig.align: 'center'
+
+
+graf <- encuestas_error |> 
+  filter(siglas_comun %in% partidos_nacionales) |>
+  mutate(error = intencion_voto - porc_voto_real) |> 
+  ggplot() +
+  aes(x = siglas_comun, y = error, 
+      color = siglas_comun) +
+  geom_violin(aes(fill = siglas_comun),
+                       alpha = 0.65) + 
+  geom_boxplot(width = 0.4, alpha = 0, outlier.alpha = 0) +
+  geom_point(aes(text = glue("Partido: {siglas_comun} \n %Voto: {round(porc_voto_real,1)} \n Intencion voto: {intencion_voto} \n Error: {round(error,1)} \n Encuestadora: {pollster}"))) +
+  scale_color_manual(values = colores_partidos) + 
+  scale_fill_manual(values = colores_partidos) +
+  guides(color = "none", fill = "none") + 
+  labs(title = "Error cometido en cada partido por las encuestadoras",
+       subtitle = "Error = %Intención de voto - %Voto real",
+       x = "",
+       y = "Error cometido",
+       caption = "A. Moreno-Ribera \n P. Villoslada-Blanco")
+
+plotly::ggplotly(graf, tooltip = "text")
+```
+
+------------------------------------------------------------------------
+
+
+```{r}
+#| fig.align: 'center'
+
+graf + facet_wrap(~fecha)
+```
 ------------------------------------------------------------------------
 
 ## ¿Qué casas encuestadores acertaron más y cuales se desviaron más de los resultados?
