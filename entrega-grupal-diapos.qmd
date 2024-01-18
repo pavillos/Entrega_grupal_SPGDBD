@@ -883,6 +883,8 @@ datos_elecciones_tidy |>
   slice_max(porc_voto, by = c(fecha, id_mun)) |> 
   ggplot() +
   geom_point(aes(x = censo, y = votos, color = ganador), alpha = 0.8) +
+  geom_smooth(aes(x = censo, y = votos), method = "lm", color = "black",
+              linetype = "dashed", se = FALSE, alpha = 0.5) +
   scale_color_manual(values = colores_partidos) +
   labs(title = "Relación entre censo y voto",
        x = "Censo",
