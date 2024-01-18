@@ -808,12 +808,10 @@ datos_elecciones_tidy |>
 Primero, añadimos el número y porcentaje de votos nulos en cada municipio y elección.
 
 ```{r}
-#| code-fold: true
-
-datos_elecciones_tidy_nulos <- datos_elecciones_tidy |>
-  mutate(total_votos_nulos = sum(votos_nulos), .by = c(fecha, id_mun)) |> 
+datos_elecciones_tidy_nulos <- datos_elecciones_tidy |> 
   distinct(fecha, id_mun, .keep_all = TRUE) |>
-  mutate(porc_voto_nulos = (total_votos_nulos / (votos_candidaturas + votos_blancos + votos_nulos)) * 100,
+  mutate(porc_voto_nulos = (votos_nulos / (votos_candidaturas + 
+                             votos_blancos + votos_nulos)) * 100,
          .by = c(fecha, id_mun))
 ```
 
@@ -822,12 +820,8 @@ datos_elecciones_tidy_nulos <- datos_elecciones_tidy |>
 Luego, obtenemos los resultados.
 
 ```{r}
-#| code-fold: true
-
 datos_elecciones_tidy_nulos |> 
-  group_by(fecha) |>
-  arrange(desc(porc_voto_nulos), .by_group = TRUE) |>
-  ungroup() |> 
+  slice_max(porc_voto_nulos, by = fecha) |>
   select(fecha, municipio, porc_voto_nulos)
 ```
 
