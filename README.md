@@ -9,8 +9,8 @@ En el siguiente [link](https://pavillos.github.io/Entrega_grupal_SPGDBD/entrega-
 
 ## 👥 Integrantes del Grupo
 
-- 🙋‍♀️ Almudena Moreno-Ribera (DNI: 47524050-R)
-- 🙋‍♂️ Pablo Villoslada-Blanco (DNI: 16615024P-P)
+- 🙋‍♀️ Almudena Moreno-Ribera
+- 🙋‍♂️ Pablo Villoslada-Blanco
 
 ## 📁 Estructura del Repositorio
 
