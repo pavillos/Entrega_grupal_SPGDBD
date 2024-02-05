@@ -13,7 +13,7 @@ execute:
 
 **Software para gestión de bases de datos**
 
-[**Autores:** <a href="https://www.linkedin.com/in/almudena-moreno-ribera-5b1389233?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3BJxW49sp%2BS8WrZmgJWFAGSQ%3D%3D" target="_blank">Almudena Moreno-Ribera</a> (DNI: 47524050-R) y <a href="https://www.linkedin.com/in/pablo-villoslada-blanco-5a4b2316a?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3B%2BykJQkDhTvqHG%2Bh5Ya24zA%3D%3D" target="_blank">Pablo Villoslada-Blanco</a> (DNI: 16615024-P)]{style="font-size: 20px;"}
+[**Autores:** <a href="https://www.linkedin.com/in/almudena-moreno-ribera-5b1389233?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3BJxW49sp%2BS8WrZmgJWFAGSQ%3D%3D" target="_blank">Almudena Moreno-Ribera</a> y <a href="https://www.linkedin.com/in/pablo-villoslada-blanco-5a4b2316a?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3B%2BykJQkDhTvqHG%2Bh5Ya24zA%3D%3D" target="_blank">Pablo Villoslada-Blanco</a>]{style="font-size: 20px;"}
 
 <img src="./datos/imagen.png" style="max-width: 33%; height: auto; margin-top: 20px;"/>
 
@@ -1090,7 +1090,7 @@ encuestas_error |>
 
 **Software para gestión de bases de datos**
 
-[**Autores:** <a href="https://www.linkedin.com/in/almudena-moreno-ribera-5b1389233?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3BJxW49sp%2BS8WrZmgJWFAGSQ%3D%3D" target="_blank">Almudena Moreno Ribera</a> (DNI: 47524050-R) y <a href="https://www.linkedin.com/in/pablo-villoslada-blanco-5a4b2316a?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3B%2BykJQkDhTvqHG%2Bh5Ya24zA%3D%3D" target="_blank">Pablo Villoslada-Blanco</a> (DNI: 16615024-P)]{style="font-size: 20px;"}
+[**Autores:** <a href="https://www.linkedin.com/in/almudena-moreno-ribera-5b1389233?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3BJxW49sp%2BS8WrZmgJWFAGSQ%3D%3D" target="_blank">Almudena Moreno-Ribera</a> y <a href="https://www.linkedin.com/in/pablo-villoslada-blanco-5a4b2316a?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base_contact_details%3B%2BykJQkDhTvqHG%2Bh5Ya24zA%3D%3D" target="_blank">Pablo Villoslada-Blanco</a>]{style="font-size: 20px;"}
 
 <img src="./datos/imagen.png" style="max-width: 33%; height: auto; margin-top: 20px;"/>
 
